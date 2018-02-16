@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">RetrofitJSON</string>
+    <string name="search_hint">Search Hint</string>
+</resources>
