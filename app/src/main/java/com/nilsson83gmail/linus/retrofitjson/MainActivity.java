@@ -7,11 +7,8 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.SearchView;
 import android.widget.TextView;
 
-import com.nilsson83gmail.linus.retrofitjson.JSONResponseModels.TravelLocation;
-import com.nilsson83gmail.linus.retrofitjson.JSONResponseModels.TravelLocations;
 import com.nilsson83gmail.linus.retrofitjson.models.Producer;
 import com.nilsson83gmail.linus.retrofitjson.models.SearchTimetable;
 import com.nilsson83gmail.linus.retrofitjson.models.Timetable;
@@ -23,7 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,6 +27,25 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private APIService apiService;
+    private AutoCompleteTextView from;
+    private AutoCompleteTextView to;
+    private ArrayAdapter<String> adapter;
+
+    private void setAdapters(List<String> listOfDestinations) {
+        int rowCount = listOfDestinations.size();
+        String[] array = new String[rowCount];
+        from = findViewById(R.id.from);
+        to = findViewById(R.id.to);
+
+        List<String> list = new ArrayList<>(listOfDestinations);
+
+        for (int i = 0; i < list.size(); i++) {
+            array[i] = list.get(i);
+        }
+        adapter = new CustomAdapter(this, android.R.layout.simple_list_item_1, array);
+        from.setAdapter(adapter);
+        to.setAdapter(adapter);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,15 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = findViewById(R.id.btnGetData);
         final TextView textView = findViewById(R.id.textView);
-        final AutoCompleteTextView from = findViewById(R.id.from);
-        final AutoCompleteTextView to = findViewById(R.id.to);
 
-        final String[] array = new String[10000];
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, array);
-
-        from.setAdapter(adapter);
-        to.setAdapter(adapter);
 
         apiService = APIUtils.getAPISErvice();
 
@@ -56,12 +63,7 @@ public class MainActivity extends AppCompatActivity {
         callTravelLocations.enqueue(new Callback<List<String>>() {
             @Override
             public void onResponse(Call<List<String>> call, Response<List<String>> response) {
-                List<String> list = new ArrayList<>(response.body());
-
-                for (int i = 0; i < list.size(); i++) {
-                    System.out.println(list.get(i));
-                    array[i] = list.get(i);
-                }
+                setAdapters(response.body());
             }
 
             @Override
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +82,12 @@ public class MainActivity extends AppCompatActivity {
                 Producer producer = new Producer("74", "SJ");
                 List<Producer> list = new ArrayList<>();
                 list.add(producer);
-                Timetable timetable = new Timetable(from.toString(), to.toString(), list, "2018-02-02T16:05:25.271Z", "2018-02-02 17:05:25", "7");
+                Timetable timetable = new Timetable(from.toString(),
+                        to.toString(),
+                        list,
+                        "2018-02-02T16:05:25.271Z",
+                        "2018-02-02 17:05:25",
+                        "7");
 
                 Call<SearchTimetable> callSearchTimetable = apiService.searchTimetable(headerMap, timetable);
 
